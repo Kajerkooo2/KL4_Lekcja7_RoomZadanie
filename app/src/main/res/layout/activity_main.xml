@@ -39,7 +39,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Rząd / Typ jednostki:"
+            android:text="Typ jednostki:"
             android:layout_marginTop="12dp"/>
 
         <Spinner
