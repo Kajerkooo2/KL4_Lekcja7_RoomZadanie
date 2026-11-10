@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<Gwint> cardList = new ArrayList<>();
     private ArrayAdapter<Gwint> adapter;
+    Gwint selectedCardToEdit = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,8 +63,6 @@ public class MainActivity extends AppCompatActivity {
 
         loadCards();
 
-        btnAdd.setOnClickListener(v -> saveCard());
-
         listViewCards.setOnItemLongClickListener((parent,view,postion,id)->{
             Gwint cardToDelete = cardList.get(postion);
             db.gwintDAO().delete(cardToDelete);
@@ -72,6 +71,30 @@ public class MainActivity extends AppCompatActivity {
             loadCards();
 
             return true;
+        });
+
+        btnAdd.setOnClickListener(v -> {
+            if (selectedCardToEdit == null) {
+                saveCard();
+            } else {
+                updateCard();
+            }
+        });
+        listViewCards.setOnItemClickListener((parent, view, position, id) -> {
+            selectedCardToEdit = cardList.get(position);
+
+            etName.setText(selectedCardToEdit.getName());
+            etPower.setText(String.valueOf(selectedCardToEdit.getPower()));
+            cbIsHero.setChecked(selectedCardToEdit.isHero());
+
+            String unitType = selectedCardToEdit.getUnitType();
+            for (int i = 0; i < unitTypes.length; i++) {
+                if (unitTypes[i].equals(unitType)) {
+                    spUnitType.setSelection(i);
+                    break;
+                }
+            }
+            btnAdd.setText("Aktualizuj karte");
         });
     }
     private void saveCard() {
@@ -108,5 +131,27 @@ public class MainActivity extends AppCompatActivity {
         cbIsHero.setChecked(false);
         spUnitType.setSelection(0);
         etName.requestFocus();
+    }
+    private void updateCard() {
+        String name = etName.getText().toString().trim();
+        String powerStr = etPower.getText().toString().trim();
+        boolean isHero = cbIsHero.isChecked();
+        String unitType = spUnitType.getSelectedItem().toString();
+
+        if (name.isEmpty() || powerStr.isEmpty()) {
+            Toast.makeText(this, "Wypelnij nazwę i sile", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        selectedCardToEdit.setName(name);
+        selectedCardToEdit.setPower(Integer.parseInt(powerStr));
+        selectedCardToEdit.setHero(isHero);
+        selectedCardToEdit.setUnitType(unitType);
+
+        db.gwintDAO().update(selectedCardToEdit);
+
+        Toast.makeText(this, "Zaktualizowano karte", Toast.LENGTH_SHORT).show();
+        clearForm();
+        loadCards();
     }
 }
