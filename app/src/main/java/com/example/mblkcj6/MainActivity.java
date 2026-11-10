@@ -1,6 +1,8 @@
 package com.example.mblkcj6;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -61,6 +63,16 @@ public class MainActivity extends AppCompatActivity {
         loadCards();
 
         btnAdd.setOnClickListener(v -> saveCard());
+
+        listViewCards.setOnItemLongClickListener((parent,view,postion,id)->{
+            Gwint cardToDelete = cardList.get(postion);
+            db.gwintDAO().delete(cardToDelete);
+
+            Toast.makeText(MainActivity.this,"Usunięto karte " + cardToDelete.getName(),Toast.LENGTH_SHORT).show();
+            loadCards();
+
+            return true;
+        });
     }
     private void saveCard() {
         String name = etName.getText().toString().trim();
