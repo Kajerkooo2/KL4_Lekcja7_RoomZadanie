@@ -10,11 +10,14 @@ import androidx.room.Entity; import androidx.room.PrimaryKey;
     private boolean isHero;
     private String unitType;
 
-    public Gwint(int id, int power, boolean isHero, String unitType) {
-        this.id = id;
+    public Gwint(int power, boolean isHero, String unitType, String name) {
         this.power = power;
         this.isHero = isHero;
         this.unitType = unitType;
+        this.name = name;
+    }
+    public Gwint(){
+
     }
 
     @Override
