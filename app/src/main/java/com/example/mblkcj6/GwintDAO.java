@@ -13,7 +13,7 @@ import java.util.List;
 public interface GwintDAO {
 
     @Insert
-    void insert(Gwint card);
+    long insert(Gwint card);
 
     @Delete
     void delete(Gwint card);

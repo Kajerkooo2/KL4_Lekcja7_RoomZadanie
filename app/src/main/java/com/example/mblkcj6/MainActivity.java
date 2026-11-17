@@ -146,11 +146,18 @@ public class MainActivity extends AppCompatActivity {
         int power = Integer.parseInt(powerStr);
         Gwint newCard = new Gwint(power,isHero,unitType,name);
 
-        db.gwintDAO().insert(newCard);
+        long cardId = db.gwintDAO().insert(newCard);
+
+        Deck selectedDeck = (Deck) spDecks.getSelectedItem();
+        if (selectedDeck != null) {
+            db.gwintDAO().insertCrossRef(
+                    new DeckCardCrossRef(selectedDeck.getDeckId(), (int) cardId)
+            );
+        }
 
         Toast.makeText(this, "Dodano karte", Toast.LENGTH_SHORT).show();
         clearForm();
-        loadCards();
+        showCardsInSelectedDeck();
     }
 
     private void loadCards() {
