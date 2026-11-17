@@ -6,7 +6,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {Gwint.class}, version = 2, exportSchema = false)
+@Database(entities = {Gwint.class, Deck.class, DeckCardCrossRef.class}, version = 5, exportSchema = false)
 public abstract class GwintDatabase extends RoomDatabase {
     public abstract GwintDAO gwintDAO();
 

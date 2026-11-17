@@ -12,6 +12,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -25,14 +26,17 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText etName, etPower;
     private CheckBox cbIsHero;
-    private Spinner spUnitType;
-    private Button btnAdd;
+    private Spinner spUnitType, spDecks;
+    private Button btnAdd, btnAddDeck, btnShowDeckCards;
     private ListView listViewCards;
 
     private GwintDatabase db;
 
     private List<Gwint> cardList = new ArrayList<>();
-    private ArrayAdapter<Gwint> adapter;
+    private ArrayAdapter<Gwint> cardAdapter;
+
+    private List<Deck> deckList = new ArrayList<>();
+    private ArrayAdapter<Deck> deckAdapter;
     Gwint selectedCardToEdit = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,14 +56,21 @@ public class MainActivity extends AppCompatActivity {
         btnAdd = findViewById(R.id.btnAdd);
         listViewCards = findViewById(R.id.listViewCards);
 
-        db = GwintDatabase.getInstance(this);
-
-        String[] unitTypes = {"Bliskie starcie (Melee)", "Daleki zasięg (Range)", "Obleżenie (Artillery)"};
+        String[] unitTypes = {"Bliskie starcie (Melee)", "Daleki zasięg (Range)", "Oblężenie (Artillery)"};
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, unitTypes);
         spUnitType.setAdapter(spinnerAdapter);
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, cardList);
-        listViewCards.setAdapter(adapter);
+        deckAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, deckList);
+        spDecks.setAdapter(deckAdapter);
+
+        loadCards();
+        loadDecks();
+
+        db = GwintDatabase.getInstance(this);
+
+
+        cardAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, cardList);
+        listViewCards.setAdapter(cardAdapter);
 
         loadCards();
 
@@ -80,6 +91,28 @@ public class MainActivity extends AppCompatActivity {
                 updateCard();
             }
         });
+
+        btnAddDeck.setOnClickListener(v -> showAddDeckDialog());
+
+        btnShowDeckCards.setOnClickListener(v -> showCardsInSelectedDeck());
+
+        listViewCards.setOnItemClickListener((parent, view, position, id) -> {
+            selectedCardToEdit = cardList.get(position);
+            etName.setText(selectedCardToEdit.getName());
+            etPower.setText(String.valueOf(selectedCardToEdit.getPower()));
+            cbIsHero.setChecked(selectedCardToEdit.isHero());
+
+            String unitType = selectedCardToEdit.getUnitType();
+            for (int i = 0; i < unitTypes.length; i++) {
+                if (unitTypes[i].equals(unitType)) {
+                    spUnitType.setSelection(i);
+                    break;
+                }
+            }
+            btnAdd.setText("Aktualizuj kartę");
+        });
+
+
         listViewCards.setOnItemClickListener((parent, view, position, id) -> {
             selectedCardToEdit = cardList.get(position);
 
@@ -122,8 +155,16 @@ public class MainActivity extends AppCompatActivity {
         List<Gwint> cards = db.gwintDAO().getAllCards();
         cardList.clear();
         cardList.addAll(cards);
-        adapter.notifyDataSetChanged();
+        cardAdapter.notifyDataSetChanged();
     }
+
+    private void loadDecks() {
+        List<Deck> decks = db.gwintDAO().getAllDecks();
+        deckList.clear();
+        deckList.addAll(decks);
+        deckAdapter.notifyDataSetChanged();
+    }
+
 
     private void clearForm() {
         etName.setText("");
@@ -154,4 +195,42 @@ public class MainActivity extends AppCompatActivity {
         clearForm();
         loadCards();
     }
+
+    private void showAddDeckDialog() {
+        EditText input = new EditText(this);
+        input.setHint("Nazwa talii");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Stwórz nowa talie")
+                .setView(input)
+                .setPositiveButton("Utwórz", (dialog, which) -> {
+                    String deckName = input.getText().toString().trim();
+                    if (!deckName.isEmpty()) {
+                        db.gwintDAO().insertDeck(new Deck(deckName));
+                        loadDecks();
+                        Toast.makeText(this, "Utworzono talie", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Anuluj", null)
+                .show();
+    }
+
+    private void showCardsInSelectedDeck() {
+        if (spDecks.getSelectedItem() == null) {
+            Toast.makeText(this, "Brak dostępnych talii!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Deck selectedDeck = (Deck) spDecks.getSelectedItem();
+
+        DeckWithCards deckWithCards = db.gwintDAO().getDeckWithCards(selectedDeck.getDeckId());
+
+        if (deckWithCards != null && deckWithCards.cards != null) {
+            cardList.clear();
+            cardList.addAll(deckWithCards.cards);
+            cardAdapter.notifyDataSetChanged();
+            Toast.makeText(this, "Karty z talii: " + selectedDeck.getDeckName(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }
