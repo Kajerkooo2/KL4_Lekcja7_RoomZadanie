@@ -53,26 +53,24 @@ public class MainActivity extends AppCompatActivity {
         etPower = findViewById(R.id.etPower);
         cbIsHero = findViewById(R.id.cbIsHero);
         spUnitType = findViewById(R.id.spUnitType);
+        spDecks = findViewById(R.id.spDecks);
         btnAdd = findViewById(R.id.btnAdd);
+        btnAddDeck = findViewById(R.id.btnAddDeck);
+        btnShowDeckCards = findViewById(R.id.btnShowDeckCards);
         listViewCards = findViewById(R.id.listViewCards);
-
-        String[] unitTypes = {"Bliskie starcie (Melee)", "Daleki zasięg (Range)", "Oblężenie (Artillery)"};
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, unitTypes);
-        spUnitType.setAdapter(spinnerAdapter);
-
-        deckAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, deckList);
-        spDecks.setAdapter(deckAdapter);
-
-        loadCards();
-        loadDecks();
 
         db = GwintDatabase.getInstance(this);
 
+        deckAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_dropdown_item, deckList);
+        spDecks.setAdapter(deckAdapter);
 
-        cardAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, cardList);
+        cardAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_list_item_1, cardList);
         listViewCards.setAdapter(cardAdapter);
 
         loadCards();
+        loadDecks();
 
         listViewCards.setOnItemLongClickListener((parent,view,postion,id)->{
             Gwint cardToDelete = cardList.get(postion);
@@ -95,6 +93,10 @@ public class MainActivity extends AppCompatActivity {
         btnAddDeck.setOnClickListener(v -> showAddDeckDialog());
 
         btnShowDeckCards.setOnClickListener(v -> showCardsInSelectedDeck());
+
+        String[] unitTypes = {"Bliskie starcie (Melee)", "Daleki zasięg (Range)", "Oblężenie (Artillery)"};
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, unitTypes);
+        spUnitType.setAdapter(spinnerAdapter);
 
         listViewCards.setOnItemClickListener((parent, view, position, id) -> {
             selectedCardToEdit = cardList.get(position);
